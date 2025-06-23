@@ -111,6 +111,22 @@ Pour utiliser MLX ou d'autres applications graphiques depuis un conteneur lancé
    ```
 </details>
 
+## Configuration optionnelle
+
+<details>
+<summary><strong>⚙️ Git && SSH</strong></summary>
+
+Si vous souhaitez importer automatiquement votre configuration git (`.gitconfig`) && ssh (`.ssh/*`) dans le devcontainer, il suffit de decommenter les lignes suivantes :
+
+```json
+  "mounts": [
+    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind,consistency=cached,readonly",
+    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached,readonly"
+  ],
+```
+
+</details>
+
 ## Licence
 
 Ce projet est distribué sous la [Licence MIT](LICENSE).
