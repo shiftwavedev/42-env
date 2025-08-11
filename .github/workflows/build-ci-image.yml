@@ -64,5 +64,6 @@ jobs:
           make --version &&
           norminette --version &&
           valgrind --version &&
+          (pkg-config --modversion readline || echo 'readline: installed from source') &&
           echo '=== Tests réussis ==='
         "
