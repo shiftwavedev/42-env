@@ -1,0 +1,70 @@
+name: Build 42-env CI Image
+
+on:
+  push:
+    branches: [ main ]
+    paths: 
+      - '.devcontainer/**'
+      - '.github/workflows/build-ci-image.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.devcontainer/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-test-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Login to GitHub Container Registry
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/${{ github.repository_owner }}/42-env-ci
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix=sha-
+          type=raw,value=latest,enable={{is_default_branch}}
+          
+    - name: Build and push CI image
+      uses: docker/build-push-action@v5
+      with:
+        context: .devcontainer
+        file: .devcontainer/Dockerfile.ci
+        platforms: linux/amd64
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha,scope=42-env-ci
+        cache-to: type=gha,scope=42-env-ci,mode=max
+        
+    - name: Test image
+      run: |
+        docker run --rm ghcr.io/${{ github.repository_owner }}/42-env-ci:latest bash -c "
+          echo '=== Test environnement 42-env CI ===' &&
+          gcc --version &&
+          clang --version &&
+          make --version &&
+          norminette --version &&
+          valgrind --version &&
+          echo '=== Tests réussis ==='
+        "

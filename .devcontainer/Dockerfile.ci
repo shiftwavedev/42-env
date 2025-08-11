@@ -1,0 +1,76 @@
+# Dockerfile optimized for CI/CD GitHub Actions
+
+FROM ubuntu:22.04 AS base
+
+ARG VERSION_MAKE=4.3
+ARG VERSION_LIB_READLINE=8.1
+ARG VERSION_VALGRIND=3.18.1
+
+WORKDIR /root
+
+RUN apt-get update && \
+    export DEBIAN_FRONTEND=noninteractive && \
+    apt-get install --no-install-recommends -y \
+    wget curl git build-essential \
+    gcc-10 g++-10 gcc-11 g++-11 \
+    clang clang-12 clang-14 clangd \
+    gdb lldb-12 \
+    pkg-config binutils libc6-dbg \
+    libbsd-dev zlib1g-dev libxext-dev \
+    python3 python3-pip python3-venv \
+    make cmake meson \
+    && rm -rf /var/lib/apt/lists/* \
+    && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 \
+    && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 100 \
+    && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-12 100 \
+    && update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-12 100 \
+    && update-alternatives --install /usr/bin/cc cc /usr/bin/clang-12 100 \
+    && update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-12 100
+
+RUN if [ "$VERSION_MAKE" != "$(make --version | head -n1 | cut -d' ' -f3)" ]; then \
+    wget https://ftp.gnu.org/gnu/make/make-${VERSION_MAKE}.tar.gz && \
+    tar -xvzf make-${VERSION_MAKE}.tar.gz && \
+    cd make-${VERSION_MAKE} && \
+    ./configure && make && make install && \
+    cd .. && rm -rf make-${VERSION_MAKE}* ; \
+    fi
+
+RUN wget https://ftp.gnu.org/gnu/readline/readline-${VERSION_LIB_READLINE}.tar.gz && \
+    tar -xzvf readline-${VERSION_LIB_READLINE}.tar.gz && \
+    cd readline-${VERSION_LIB_READLINE} && \
+    ./configure --enable-shared && \
+    make && make install && \
+    cd .. && rm -rf readline-${VERSION_LIB_READLINE}*
+
+RUN git clone https://github.com/42paris/minilibx-linux.git && \
+    cd minilibx-linux && make && \
+    cp mlx.h /usr/local/include/ && \
+    cp libmlx.a /usr/local/lib/ && \
+    cd .. && rm -rf minilibx-linux
+
+RUN wget https://sourceware.org/pub/valgrind/valgrind-${VERSION_VALGRIND}.tar.bz2 && \
+    tar -xjf valgrind-${VERSION_VALGRIND}.tar.bz2 && \
+    cd valgrind-${VERSION_VALGRIND} && \
+    ./configure && make && make install && \
+    cd .. && rm -rf valgrind-${VERSION_VALGRIND}*
+
+RUN python3 -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip setuptools && \
+    /opt/venv/bin/pip install norminette
+
+RUN ldconfig
+ENV PATH="/opt/venv/bin:$PATH"
+
+WORKDIR /github/workspace
+ENV CI=true
+ENV TERM=xterm-256color
+
+RUN echo "=== 42 tools verification ===" && \
+    gcc --version && \
+    clang --version && \
+    make --version && \
+    norminette --version && \
+    valgrind --version && \
+    echo "=== 42-env CI ready ==="
+
+CMD ["/bin/bash"]
