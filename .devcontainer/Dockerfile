@@ -43,10 +43,10 @@ RUN apt-get update && \
     clangd \
     gdb \
     lldb-12 \
-    gcc-10=10.5.0-1ubuntu1~22.04 \
-    g++-10=10.5.0-1ubuntu1~22.04 \
-    gcc-11=11.4.0-1ubuntu1~22.04 \
-    g++-11=11.4.0-1ubuntu1~22.04
+    gcc-10=10.5.0-1ubuntu1~22.04.2 \
+    g++-10=10.5.0-1ubuntu1~22.04.2 \
+    gcc-11=11.4.0-1ubuntu1~22.04.2 \
+    g++-11=11.4.0-1ubuntu1~22.04.2
 
 # Changes the symbolic links for LLVM-TOOLCHAIN and GCC (and others)
 RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-12 100 \
