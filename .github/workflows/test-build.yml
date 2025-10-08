@@ -1,0 +1,41 @@
+name: Test build
+
+on:
+  schedule:
+    - cron: "0 4 15 * *"
+  workflow_dispatch:
+
+jobs:
+  build-and-test-image:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build and load CI image
+      uses: docker/build-push-action@v5
+      with:
+        context: .devcontainer
+        file: .devcontainer/Dockerfile.ci
+        platforms: linux/amd64
+        load: true
+        tags: 42-env-ci:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Test image
+      run: |
+        docker run --rm 42-env-ci:test bash -c "
+          echo '=== Test environnement 42-env CI ===' &&
+          gcc --version &&
+          clang --version &&
+          make --version &&
+          norminette --version &&
+          valgrind --version &&
+          (pkg-config --modversion readline || echo 'readline: installed from source') &&
+          echo '=== Tests réussis ==='
+        "
