@@ -15,6 +15,7 @@ RUN apt-get update && \
     pkg-config \
     binutils \
     ssh \
+    netcat \
     fish \
     libc6-dbg \
     gnupg \
