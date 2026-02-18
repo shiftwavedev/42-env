@@ -33,9 +33,10 @@ RUN apt-get update && \
     python3-venv \
     && \
     # Add LLVM-TOOLCHAIN repositories
-    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
-    add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main" && \
+    wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc && \
+    add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-14 main" && \
     add-apt-repository ppa:ubuntu-toolchain-r/test && \
+    apt-get update && \
     apt-get install --no-install-recommends -y \
     # Install LLVM-TOOLCHAIN and GCC
     clang \
@@ -47,10 +48,10 @@ RUN apt-get update && \
     irssi \
     netcat \
     meson ninja-build \
-    gcc-10=10.5.0-1ubuntu1~22.04.2 \
-    g++-10=10.5.0-1ubuntu1~22.04.2 \
-    gcc-11=11.4.0-1ubuntu1~22.04.2 \
-    g++-11=11.4.0-1ubuntu1~22.04.2
+    gcc-10=10.5.0-1ubuntu1~22.04.3 \
+    g++-10=10.5.0-1ubuntu1~22.04.3 \
+    gcc-11=11.4.0-1ubuntu1~22.04.3 \
+    g++-11=11.4.0-1ubuntu1~22.04.3
 
 # Changes the symbolic links for LLVM-TOOLCHAIN and GCC (and others)
 RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-12 100 \

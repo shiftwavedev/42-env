@@ -12,13 +12,24 @@ RUN apt-get update && \
     export DEBIAN_FRONTEND=noninteractive && \
     apt-get install --no-install-recommends -y \
     wget curl git build-essential \
-    gcc-10 g++-10 gcc-11 g++-11 \
+    software-properties-common gnupg \
     clang clang-12 clang-14 clangd \
     gdb lldb-12 \
     pkg-config binutils libc6-dbg \
     libbsd-dev zlib1g-dev libxext-dev \
     python3 python3-pip python3-venv \
     make cmake meson \
+    && \
+    # Add LLVM-TOOLCHAIN repositories
+    wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc && \
+    add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-14 main" && \
+    add-apt-repository ppa:ubuntu-toolchain-r/test && \
+    apt-get update && \
+    apt-get install --no-install-recommends -y \
+    gcc-10=10.5.0-1ubuntu1~22.04.3 \
+    g++-10=10.5.0-1ubuntu1~22.04.3 \
+    gcc-11=11.4.0-1ubuntu1~22.04.3 \
+    g++-11=11.4.0-1ubuntu1~22.04.3 \
     && rm -rf /var/lib/apt/lists/* \
     && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 \
     && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 100 \
